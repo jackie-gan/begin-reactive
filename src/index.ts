@@ -1,4 +1,4 @@
-import reactive from './reactive';
+import reactive from './observer/reactive';
 
 function Begin(options) {
   const obj = options.obj;
