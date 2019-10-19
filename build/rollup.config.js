@@ -4,7 +4,8 @@ const config = {
   input: ['src/index.ts'],
   output: {
     file: 'dist/index.js',
-    format: 'cjs'
+    format: 'iife',
+    name: 'Begin'
   },
   plugins: [
     typescript()
