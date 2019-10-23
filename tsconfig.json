@@ -9,7 +9,7 @@
     "allowSyntheticDefaultImports": true,
     "noUnusedLocals": true,
     "strictNullChecks": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "declaration": true,
     "baseUrl": "."
   },
