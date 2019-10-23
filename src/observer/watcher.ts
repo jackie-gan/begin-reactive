@@ -25,6 +25,6 @@ export default class Watcher {
   }
 
   get() {
-    this.value =  this.vm[this.name];
+    this.value =  this.vm.data[this.name];
   }
 }

@@ -6,7 +6,7 @@ function Begin(options) {
   const el = options.el;
 
   for (const key in this.data) {
-    defineReactive(this, key, this.data[key]);
+    defineReactive(this.data, key, this.data[key]);
   }
 
   const node = document.getElementById(el);
