@@ -5,7 +5,6 @@ function compile(node, vm) {
 
   if (node.nodeType === 3) {
     if (reg.test(node.nodeValue)) {
-      console.log(111);
       const name = node.nodeValue.match(reg)[1].trim();
 
       new Watcher(vm, node, name);

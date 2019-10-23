@@ -5,7 +5,8 @@ const config = {
   output: {
     file: 'dist/index.js',
     format: 'iife',
-    name: 'Begin'
+    name: 'Begin',
+    sourcemap: false
   },
   plugins: [
     typescript()
