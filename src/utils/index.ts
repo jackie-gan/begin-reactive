@@ -5,3 +5,11 @@ export const isObject = (obj) => {
 export const isPlainObject = (obj) => {
   return Object.prototype.toString.call(obj) === '[object Object]';
 }
+
+export const isElementNode = (node) => {
+  return node.nodeType === 1;
+}
+
+export const isTextNode = (node) => {
+  return node.nodeType === 3;
+}

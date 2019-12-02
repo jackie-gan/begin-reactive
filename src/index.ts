@@ -1,20 +1,77 @@
-import { defineReactive } from './observer/reactive';
-import nodeToFragment from './compiler';
+import Compiler from './compiler';
+import { isPlainObject } from './utils';
+import { observe } from './observer/reactive';
 
 function Begin(options) {
-  this.data = options.data;
-  const el = options.el;
+  this._init(options);
+}
 
-  for (const key in this.data) {
-    defineReactive(this.data, key, this.data[key]);
+Begin.prototype._init = function(options) {
+  this.$options = options;
+  const data = this.$options.data;
+  this._data = typeof data === 'function' ? this.getData(data, this) : data || {};
+  this._computed = this.$options.computed;
+  this._initData();
+  this._initComputed();
+
+  observe(this._data);
+
+  new Compiler(this.$options.el, this);
+};
+
+Begin.prototype._initData = function() {
+  Object.keys(this._data).forEach((key) => {
+    proxy(this, '_data', key);
+  });
+}
+
+Begin.prototype._initComputed = function() {
+  const computed = this._computed;
+
+  if (computed && isPlainObject(computed)) {
+    Object.keys(computed).forEach((key) => {
+      let getter;
+      let setter;
+      if (typeof computed[key] === 'function') {
+        getter = computed[key];
+        setter = function() {};
+      } else {
+        getter = computed[key].get || function() {};
+        setter = computed[key].set || function() {};
+      }
+
+      proxy(this, '_computed', key, getter, setter);
+    });
+  }
+}
+
+Begin.prototype.getData = function(data, vm) {
+  try {
+    return data.call(vm);
+  } catch (e) {
+    return {};
+  }
+};
+
+const sharedPropertyDefinition = {
+  configurable: true,
+  enumerable: true,
+  get: function() {},
+  set: function() {}
+};
+
+/**
+ * 将数据挂载到vm上，使其可以通过this直接访问
+ */
+function proxy(vm, initialKey, newKey, getter?, setter?) {
+  sharedPropertyDefinition.get = getter || function proxyGetter() {
+    return vm[initialKey][newKey];
+  };
+  sharedPropertyDefinition.set = setter || function proxySetter(val) {
+    vm[initialKey][newKey] = val;
   }
 
-  const node = document.getElementById(el);
-  if (node) {
-    const dom = nodeToFragment(node, this);
-
-    node.appendChild(dom);
-  }
+  Object.defineProperty(vm, newKey, sharedPropertyDefinition);
 }
 
 export default Begin;

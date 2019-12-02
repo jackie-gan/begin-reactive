@@ -1,6 +1,10 @@
 interface Dep {
-  subs: Array<any>
+  subs: Array<any>,
+  id: number
 }
+
+let uid = 0
+
 /**
  * 收集watcher
  */
@@ -8,6 +12,7 @@ class Dep {
   static target
 
   constructor() {
+    this.id = uid++;
     this.subs = [];
   }
 
@@ -28,5 +33,7 @@ class Dep {
     }
   }
 }
+
+Dep.target = null;
 
 export default Dep;

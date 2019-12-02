@@ -6,5 +6,7 @@ module.exports = {
     jest: true
   },
   globals: {},
-  rules: []
+  rules: {
+    semi: ['error', 'always']
+  }
 };

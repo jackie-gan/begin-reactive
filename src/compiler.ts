@@ -1,25 +1,75 @@
 import Watcher from './observer/watcher';
+import { isElementNode, isTextNode } from './utils/index';
 
-function compile(node, vm) {
-  const reg = /\{\{(.*)\}\}/;
+interface Compiler {
+  $el: any,
+  vm: any
 
-  if (node.nodeType === 3) {
-    if (reg.test(node.nodeValue)) {
-      const name = node.nodeValue.match(reg)[1].trim();
+}
 
-      new Watcher(vm, node, name);
+/*匹配{{}} */
+const textRE = /\{\{(.*)\}\}/;
+
+class Compiler {
+  constructor(el, vm) {
+    this.$el = document.querySelector(el);
+    this.vm = vm;
+
+    if (this.$el) {
+      this.init();
     }
   }
-}
 
-export default function nodeToFragment(node, vm) {
-  const fragment = document.createDocumentFragment();
-
-  let child;
-  while (child = node.firstChild) {
-    compile(child, vm);
-    fragment.appendChild(child);
+  init() {
+    this.parseChildren(this.$el);
   }
 
-  return fragment;
+  parseChildren(el) {
+    Array.from(el.childNodes, (node: any) => {
+      if (isElementNode(node)) {
+        this.handleElement(node);
+        if (node.childNodes && node.childNodes.length) {
+          this.parseChildren(node);
+        }
+      } else if (isTextNode(node) && textRE.test(node.textContent)) {
+        this.compileText(node);
+      }
+    });
+  }
+
+  handleElement(node) {
+
+  }
+
+  /**
+   * 编译Text： {{}}， v-text
+   * @param node 目标节点
+   * @param exp 属性名，此属性名已经剥离了前缀如v-,@ ,: 等等
+   */
+  compileText(node, exp) {
+    createWatcher();
+  }
 }
+
+/**
+ * 创建一个订阅者
+ * @param node 需要修改的节点
+ * @param name 订阅者回调函数名称
+ * @param exp 已经观察的属性名，此属性名已经剥离了前缀如v-,@ ,: 等等
+ */
+function createWatcher(node, vm, name, exp) {
+  const updaterFn = updater[name];
+
+  new Watcher(vm, exp, function(newValue, oldValue) {
+    updaterFn && updaterFn(node, newValue, oldValue);
+  });
+}
+
+const updater = {
+  text(node, value) {
+    node.textContent = typeof value === 'undefined' ? '' : value;
+  },
+
+}
+
+export default Compiler;
