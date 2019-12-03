@@ -1,6 +1,7 @@
 import Compiler from './compiler';
 import { isPlainObject } from './utils';
 import { observe } from './observer/reactive';
+import Watcher from './observer/watcher';
 
 function Begin(options) {
   this._init(options);
@@ -11,10 +12,13 @@ Begin.prototype._init = function(options) {
   const data = this.$options.data;
   this._data = typeof data === 'function' ? this.getData(data, this) : data || {};
   this._computed = this.$options.computed;
+  this._watch = this.$options.watch;
   this._initData();
   this._initComputed();
 
   observe(this._data);
+
+  this._initWatch();
 
   new Compiler(this.$options.el, this);
 };
@@ -41,6 +45,20 @@ Begin.prototype._initComputed = function() {
       }
 
       proxy(this, '_computed', key, getter, setter);
+    });
+  }
+}
+
+Begin.prototype._initWatch = function() {
+  const watch = this._watch;
+
+  if (watch && isPlainObject(watch)) {
+    Object.keys(watch).forEach((key) => {
+      if (this._data[key]) {
+        const cb = watch[key];
+
+        new Watcher(this, key, cb);
+      }
     });
   }
 }
