@@ -13,3 +13,7 @@ export const isElementNode = (node) => {
 export const isTextNode = (node) => {
   return node.nodeType === 3;
 }
+
+export function peelValue(value, peel) {
+  return value.replace(peel, '');
+}
