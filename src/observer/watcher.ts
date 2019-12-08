@@ -6,10 +6,13 @@ export default class Watcher {
   cb: Function
   getter: Function
   depIds: Set<number>
+  lazy: boolean
+  dirty: boolean
 
   constructor(vm, expOrFn, cb) {
     this.vm = vm;
     this.cb = cb;
+    this.dirty = this.lazy;
     this.depIds = new Set();
     if (typeof expOrFn === 'function') {
       this.getter = expOrFn;
@@ -19,7 +22,7 @@ export default class Watcher {
         this.getter = function() {};
       }
     }
-    this.value = this.get();
+    this.value = this.lazy ? undefined : this.get();
   }
 
   addDep(dep) {
@@ -31,13 +34,17 @@ export default class Watcher {
   }
 
   update() {
-    const oldValue = this.value;
-    const newValue = this.get();
-    if (oldValue === newValue) return;
-
-    this.value = newValue;
-
-    this.cb.call(this.vm, newValue, oldValue);
+    if (this.lazy) {
+      this.dirty = true;
+    } else {
+      const oldValue = this.value;
+      const newValue = this.get();
+      if (oldValue === newValue) return;
+  
+      this.value = newValue;
+  
+      this.cb.call(this.vm, newValue, oldValue);
+    }
   }
 
   get() {
