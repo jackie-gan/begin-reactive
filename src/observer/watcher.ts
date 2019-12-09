@@ -59,7 +59,7 @@ export default class Watcher {
     return value;
   }
 
-  evalute() {
+  evaluate() {
     this.value = this.get();
     this.dirty = false;
   }

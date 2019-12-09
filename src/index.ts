@@ -113,7 +113,7 @@ function createComputedGetter(vm, key) {
     if (watcher) {
       console.log('watch', watcher.dirty);
       if (watcher.dirty) {
-        watcher.evalute();
+        watcher.evaluate();
       }
 
       return watcher.value;
