@@ -9,8 +9,13 @@ export default class Watcher {
   lazy: boolean
   dirty: boolean
 
-  constructor(vm, expOrFn, cb) {
+  constructor(vm, expOrFn, cb, options?) {
     this.vm = vm;
+    if (options) {
+      this.lazy = !!options.lazy;
+    } else {
+      this.lazy = false;
+    }
     this.cb = cb;
     this.dirty = this.lazy;
     this.depIds = new Set();
@@ -52,6 +57,11 @@ export default class Watcher {
     const value = this.getter.call(this.vm, this.vm);
     Dep.target = null;
     return value;
+  }
+
+  evalute() {
+    this.value = this.get();
+    this.dirty = false;
   }
 
   parsePath(exp): any {

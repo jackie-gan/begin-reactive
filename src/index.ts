@@ -2,6 +2,9 @@ import Compiler from './compiler';
 import { isPlainObject } from './utils';
 import { observe } from './observer/reactive';
 import Watcher from './observer/watcher';
+import Dep from './observer/dep';
+
+const noop = function() {};
 
 function Begin(options) {
   this._init(options);
@@ -30,21 +33,32 @@ Begin.prototype._initData = function() {
 }
 
 Begin.prototype._initComputed = function() {
+  const watchers = this._computedWatchers = Object.create(null);
+
   const computed = this._computed;
 
   if (computed && isPlainObject(computed)) {
     Object.keys(computed).forEach((key) => {
-      let getter;
-      let setter;
-      if (typeof computed[key] === 'function') {
-        getter = computed[key];
-        setter = function() {};
-      } else {
-        getter = computed[key].get || function() {};
-        setter = computed[key].set || function() {};
-      }
+      const userDef = computed[key];
+      const getter = typeof userDef === 'function' ? userDef : userDef.get;
 
-      proxy(this, '_computed', key, getter, setter);
+      watchers[key] = new Watcher(this, getter || noop, function() {
+        console.log('computed update here');
+      }, { lazy: true });
+
+      if (!(key in this)) {
+        let proxyGetter;
+        let proxySetter;
+        if (typeof userDef === 'function') {
+          proxyGetter = createComputedGetter(this, key);
+          proxySetter = noop;
+        } else {
+          proxyGetter = userDef.get ? (userDef.cache !== false ? createComputedGetter(this, key) : userDef.get) : noop;
+          proxySetter = userDef.set ? userDef.set : noop;
+        }
+
+        proxy(this, '_computed', key, proxyGetter, proxySetter);
+      }
     });
   }
 }
@@ -74,8 +88,8 @@ Begin.prototype.getData = function(data, vm) {
 const sharedPropertyDefinition = {
   configurable: true,
   enumerable: true,
-  get: function() {},
-  set: function() {}
+  get: noop,
+  set: noop
 };
 
 /**
@@ -90,6 +104,21 @@ function proxy(vm, initialKey, newKey, getter?, setter?) {
   }
 
   Object.defineProperty(vm, newKey, sharedPropertyDefinition);
+}
+
+function createComputedGetter(vm, key) {
+  return function computedGetter() {
+    const watcher = vm._computedWatchers && vm._computedWatchers[key];
+
+    if (watcher) {
+      console.log('watch', watcher.dirty);
+      if (watcher.dirty) {
+        watcher.evalute();
+      }
+
+      return watcher.value;
+    }
+  }
 }
 
 export default Begin;
